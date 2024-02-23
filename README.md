@@ -7,7 +7,7 @@ Validate a set of conditional rules.
 Import the ConditionsValidator class.
 
 ````
-import ConditionsValidator from '@gistapps/template-builder';
+import ConditionsValidator from '@gistapps/conditions-validator';
 ````
 
 Call the validate function and pass the validation config for testing.
