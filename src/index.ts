@@ -1,32 +1,4 @@
-
-enum RuleTypes {
-  Any = "any",
-  All = "all",
-};
-
-enum Conditions {
-  IsSet = "IS_SET",
-  IsNotSet = "IS_NOT_SET",
-  Equals = "EQUALS",
-  NotEquals = "NOT_EQUALS",
-  Contains = "CONTAINS",
-  NotContains = "NOT_CONTAINS",
-  GreaterThan = "GREATER_THAN",
-  LessThan = "LESS_THAN",
-};
-
-type Rule = {
-  condition: Conditions;
-  option: string;
-  value: any;
-};
-
-type ValidatorConfig = {
-  rules: Rule[];
-  ruleType: RuleTypes;
-  data?: any;
-  test?: Function;
-};
+import { Rule, ValidatorConfig } from "./types";
 
 /**
  * CONDITIONS VALIDATOR
@@ -147,7 +119,7 @@ const ConditionsValidator = {
    * Tests a condition based on the provided value and test value.
    */
   testSingleCondition: (
-    condition: Conditions,
+    condition: string,
     value: any,
     testValue: any,
   ): boolean => {
@@ -160,7 +132,7 @@ const ConditionsValidator = {
    */
   testJsonData: (
     rule: Rule,
-    ruleType: RuleTypes,
+    ruleType: string,
     data: any,
   ): boolean => {
 
@@ -206,7 +178,7 @@ const ConditionsValidator = {
    */
   validateSingleRule: (
     rule: Rule,
-    ruleType: RuleTypes,
+    ruleType: string,
     data: any,
     test: Function | undefined,
   ): boolean => {
