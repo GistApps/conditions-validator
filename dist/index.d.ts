@@ -1,28 +1,15 @@
-declare enum RuleTypes {
-    Any = "any",
-    All = "all"
-}
-declare enum Conditions {
-    IsSet = "IS_SET",
-    IsNotSet = "IS_NOT_SET",
-    Equals = "EQUALS",
-    NotEquals = "NOT_EQUALS",
-    Contains = "CONTAINS",
-    NotContains = "NOT_CONTAINS",
-    GreaterThan = "GREATER_THAN",
-    LessThan = "LESS_THAN"
-}
 type Rule = {
-    condition: Conditions;
+    condition: string;
     option: string;
     value: any;
 };
 type ValidatorConfig = {
     rules: Rule[];
-    ruleType: RuleTypes;
+    ruleType: string;
     data?: any;
     test?: Function;
 };
+
 /**
  * CONDITIONS VALIDATOR
  */
@@ -76,16 +63,16 @@ declare const ConditionsValidator: {
     /**
      * Tests a condition based on the provided value and test value.
      */
-    testSingleCondition: (condition: Conditions, value: any, testValue: any) => boolean;
+    testSingleCondition: (condition: string, value: any, testValue: any) => boolean;
     /**
      * Test a rule against provided JSON data.
      * Recursively traverses nested data to find the option value.
      */
-    testJsonData: (rule: Rule, ruleType: RuleTypes, data: any) => boolean;
+    testJsonData: (rule: Rule, ruleType: string, data: any) => boolean;
     /**
      * Validates a single rule condition.
      */
-    validateSingleRule: (rule: Rule, ruleType: RuleTypes, data: any, test: Function | undefined) => boolean;
+    validateSingleRule: (rule: Rule, ruleType: string, data: any, test: Function | undefined) => boolean;
     /**
      * Validates all rules based on the provided ruleType.
      *

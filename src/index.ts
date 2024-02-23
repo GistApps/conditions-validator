@@ -1,4 +1,4 @@
-import { Rule, ValidatorConfig } from "./types";
+import { Rule, ValidatorConfig } from "./types/index";
 
 /**
  * CONDITIONS VALIDATOR
