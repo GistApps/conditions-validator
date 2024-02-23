@@ -1,0 +1,29 @@
+{
+  "name": "@gistapps/conditions-validator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "npx tsup --dts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GistApps/conditions-validator.git"
+  },
+  "publishConfig": {
+    "@YOUR-USERNAME:registry": "https://npm.pkg.github.com"
+  },
+  "author": "Gist",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/GistApps/conditions-validator/issues"
+  },
+  "homepage": "https://github.com/GistApps/conditions-validator#readme",
+  "devDependencies": {
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3"
+  }
+}
