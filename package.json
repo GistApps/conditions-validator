@@ -14,7 +14,7 @@
     "url": "git+https://github.com/GistApps/conditions-validator.git"
   },
   "publishConfig": {
-    "@YOUR-USERNAME:registry": "https://npm.pkg.github.com"
+    "@gistapps:registry": "https://npm.pkg.github.com"
   },
   "author": "Gist",
   "license": "ISC",
