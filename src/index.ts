@@ -136,20 +136,22 @@ const ConditionsValidator = {
     data: any,
   ): boolean => {
 
+    if (!data) {
+      console.warn("Invalid data provided to test function: ", data);
+      return false;
+    }
+
     const { condition, option, value: ruleValue } = rule;
 
     const optionArray = option.split(".");
 
     const nextLevelDataKey = (optionArray.length > 1) ? optionArray.shift() : null;
+    const nextLevelData = nextLevelDataKey && data[nextLevelDataKey];
 
     // Recursively call test function if option data is nested
-    if (nextLevelDataKey) {
-
-      const nextLevelData = data[nextLevelDataKey];
+    if (nextLevelData) {
       const nextLevelRule = { ...rule, option: optionArray.join(".") };
-
       return ConditionsValidator.testJsonData(nextLevelRule, ruleType, nextLevelData);
-
     }
 
     // Test each data item if the data is an Array

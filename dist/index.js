@@ -91,11 +91,15 @@ var ConditionsValidator = {
    * Recursively traverses nested data to find the option value.
    */
   testJsonData: (rule, ruleType, data) => {
+    if (!data) {
+      console.warn("Invalid data provided to test function: ", data);
+      return false;
+    }
     const { condition, option, value: ruleValue } = rule;
     const optionArray = option.split(".");
     const nextLevelDataKey = optionArray.length > 1 ? optionArray.shift() : null;
-    if (nextLevelDataKey) {
-      const nextLevelData = data[nextLevelDataKey];
+    const nextLevelData = nextLevelDataKey && data[nextLevelDataKey];
+    if (nextLevelData) {
       const nextLevelRule = { ...rule, option: optionArray.join(".") };
       return ConditionsValidator.testJsonData(nextLevelRule, ruleType, nextLevelData);
     }
