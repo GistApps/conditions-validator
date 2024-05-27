@@ -2,12 +2,12 @@
 
 import ConditionCheckerInterface from './ConditionCheckerInterface';
 import ConditionTests from './ConditionTests';
-import { AllOrAnyType, FormConditionInterface } from './types/index';
+import { AllOrAnyType, JSONConditionInterface } from './types/index';
 
 abstract class JsonConditionChecker implements ConditionCheckerInterface {
 
   constructor(
-    public conditions: Array<FormConditionInterface>,
+    public conditions: Array<JSONConditionInterface>,
     public allOrAny: AllOrAnyType,
     public json: any
   )
@@ -41,10 +41,22 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
       }
 
       // Handle regular form data
-      return obj[path]
+      return obj[path];
+
     }
 
-    return this.getValueFromDotNotation(obj[path.slice(0, index)], path.slice(index + 1));
+    const newObject = obj[path.slice(0, index)];
+
+    const newPath = path.slice(index + 1);
+
+    // Make an array of values if the object is an array
+    if (Array.isArray(newObject)) {
+      return newObject.map((o) => {
+        return this.getValueFromDotNotation(o, newPath);
+      });
+    }
+
+    return this.getValueFromDotNotation(newObject, newPath);
 
   }
 
@@ -62,11 +74,17 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
    */
   compare = (value: any, condition: string, conditionValue: any): boolean => {
 
-    if (typeof(ConditionTests[condition]) === 'function') {
-      return ConditionTests[condition](value, conditionValue);
+    if (typeof(ConditionTests[condition]) !== 'function') {
+      return false;
     }
 
-    return false;
+    if (ConditionTests.IS_ARRAY(value)) {
+      return value.some((v) => {
+        return this.compare(v, condition, conditionValue);
+      });
+    }
+
+    return ConditionTests[condition](value, conditionValue);
 
   }
 
@@ -77,16 +95,16 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
     
     if (this.allOrAny === 'all') {
       return this.conditions.every((c) => {
-        const { element, condition, value } = c;
-        const elValue = this.getValue(element);
+        const { option, condition, value } = c;
+        const elValue = this.getValue(option);
         return this.compare(elValue, condition, value);
       });
     }
 
     if (this.allOrAny === 'any') {
       return this.conditions.some((c) => {
-        const { element, condition, value } = c;
-        const elValue = this.getValue(element);
+        const { option, condition, value } = c;
+        const elValue = this.getValue(option);
         return this.compare(elValue, condition, value);
       });
     }
