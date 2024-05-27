@@ -1,88 +1,124 @@
-type Rule = {
+declare const tests: {
+    NOT_UNDEFINED: (value: any) => boolean;
+    NOT_NULL: (value: any) => boolean;
+    NOT_EMPTY: (value: any) => boolean;
+    NOT_FALSE: (value: any) => boolean;
+    IS_STRING: (value: any) => boolean;
+    IS_NUMBER: (value: any) => boolean;
+    IS_ARRAY: (value: any) => boolean;
+    IS_OBJECT: (value: any) => boolean;
+    IS_FUNCTION: (value: any) => boolean;
+    /**
+     * Checks if the value given IS NOT undefined, empty, null or false
+     */
+    IS_SET: (value: any) => boolean;
+    /**
+     * Checks if the value given is undefined, empty, null or false
+     */
+    IS_NOT_SET: (value: any) => boolean;
+    /**
+     * Checks if the value given is equal to a test value
+     */
+    EQUALS: (value: any, testValue: any) => boolean;
+    /**
+     * Checks if the value given is not equal to a test value
+     */
+    NOT_EQUALS: (value: any, testValue: any) => boolean;
+    /**
+     * Checks if the value given contains a test value
+     */
+    CONTAINS: (value: any, testValue: any) => any;
+    /**
+     * Checks if the value given does not contain a test value
+     */
+    NOT_CONTAINS: (value: any, testValue: any) => boolean;
+    /**
+     * Checks if the value is greater than a test value
+     */
+    GREATER_THAN: (value: any, testValue: any) => boolean;
+    /**
+     * Checks if the value is less than the test value
+     */
+    LESS_THAN: (value: any, testValue: any) => boolean;
+};
+
+type FormConditionInterface = {
+    element: string;
     condition: string;
-    option: string;
     value: any;
 };
-type ValidatorConfig = {
-    rules: Rule[];
-    ruleType: string;
-    data?: any;
-    test?: Function;
+type JSONConditionInterface = {
+    option: string;
+    condition: string;
+    value: any;
 };
+type ConditionInterface = FormConditionInterface | JSONConditionInterface;
+type AllOrAnyType = 'all' | 'any';
 
-/**
- * CONDITIONS VALIDATOR
- */
-declare const ConditionsValidator: {
+interface ConditionCheckerInterface {
+    conditions: Array<ConditionInterface>;
+    allOrAny: AllOrAnyType;
     /**
-     * The conditions object contains a set of checks that can be run on a given value.
+     * Check all conditions, and return true if all are met if allOrAny is 'all',
+     * or if any are met if allOrAny is 'any'
      */
-    conditions: {
-        NOT_UNDEFINED: (value: any) => boolean;
-        NOT_NULL: (value: any) => boolean;
-        NOT_EMPTY: (value: string) => boolean;
-        NOT_FALSE: (value: boolean) => boolean;
-        IS_STRING: (value: any) => boolean;
-        IS_NUMBER: (value: any) => boolean;
-        IS_ARRAY: (value: any) => boolean;
-        IS_OBJECT: (value: any) => boolean;
-        IS_FUNCTION: (value: any) => boolean;
-        /**
-         * Checks if the value given IS NOT undefined, empty, null or false
-         */
-        IS_SET: (value: any) => boolean;
-        /**
-         * Checks if the value given is undefined, empty, null or false
-         */
-        IS_NOT_SET: (value: any) => boolean;
-        /**
-         * Checks if the value given is equal to a test value
-         */
-        EQUALS: (value: any, testValue: any) => boolean;
-        /**
-         * Checks if the value given is not equal to a test value
-         */
-        NOT_EQUALS: (value: any, testValue: any) => boolean;
-        /**
-         * Checks if the value given contains a test value
-         */
-        CONTAINS: (value: any, testValue: any) => boolean;
-        /**
-         * Checks if the value given does not contain a test value
-         */
-        NOT_CONTAINS: (value: any, testValue: any) => boolean;
-        /**
-         * Checks if the value is greater than a test value
-         */
-        GREATER_THAN: (value: any, testValue: any) => boolean;
-        /**
-         * Checks if the value is less than the test value
-         */
-        LESS_THAN: (value: any, testValue: any) => boolean;
-    };
+    check(): boolean;
     /**
-     * Tests a condition based on the provided value and test value.
+     * Get the value from the HTML or JSON element
+     * @param element
      */
-    testSingleCondition: (condition: string, value: any, testValue: any) => boolean;
+    getValue(element: string): any;
     /**
-     * Test a rule against provided JSON data.
-     * Recursively traverses nested data to find the option value.
+     * Compare a single condition
+     * @param value
+     * @param condition
+     * @param conditionValue
      */
-    testJsonData: (rule: Rule, ruleType: string, data: any) => boolean;
-    /**
-     * Validates a single rule condition.
-     */
-    validateSingleRule: (rule: Rule, ruleType: string, data: any, test: Function | undefined) => boolean;
-    /**
-     * Validates all rules based on the provided ruleType.
-     *
-     * Config must include rules, ruleType, and ONE of either:
-     *   1) @property {object} data - Javascript object containing data passed to the validator's default
-     *      validation function, which tests the data against the provided rules.
-     *   2) @property {function} test - Custom test function provided to overrides the validator's default
-     *      validation function. Params include the rule, ruleType, and a callback to test the rule condition.
-     */
-    validate: (config: ValidatorConfig) => boolean;
-};
+    compare(value: any, condition: string, conditionValue: any): boolean;
+}
 
-export { ConditionsValidator as default };
+declare abstract class JsonConditionChecker implements ConditionCheckerInterface {
+    conditions: Array<FormConditionInterface>;
+    allOrAny: AllOrAnyType;
+    json: any;
+    constructor(conditions: Array<FormConditionInterface>, allOrAny: AllOrAnyType, json: any);
+    /**
+     * Validation config is set up in dot notation to match the form html structure
+     * @param {*} obj
+     * @param {*} path
+     * @returns
+     */
+    getValueFromDotNotation: (obj: any, path: string) => any;
+    /**
+     * @inheritdoc
+     */
+    getValue: (element: string) => any;
+    /**
+     * @inheritdoc
+     */
+    compare: (value: any, condition: string, conditionValue: any) => boolean;
+    /**
+     * @inheritdoc
+     */
+    check: () => boolean;
+}
+
+declare abstract class FormConditionChecker implements ConditionCheckerInterface {
+    conditions: Array<FormConditionInterface>;
+    allOrAny: AllOrAnyType;
+    constructor(conditions: Array<FormConditionInterface>, allOrAny: AllOrAnyType);
+    /**
+     * @inheritdoc
+     */
+    getValue: (inputName: string) => any;
+    /**
+     * @inheritdoc
+     */
+    compare: (value: any, condition: string, conditionValue: any) => boolean;
+    /**
+     * @inheritdoc
+     */
+    check: () => boolean;
+}
+
+export { tests as ConditionTests, FormConditionChecker, JsonConditionChecker };
