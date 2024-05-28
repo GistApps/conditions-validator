@@ -34,7 +34,7 @@ var tests = {
     return value !== null;
   },
   NOT_EMPTY: (value) => {
-    return value !== "";
+    return value !== "" && (Array.isArray(value) ? value.length > 0 : true);
   },
   NOT_FALSE: (value) => {
     return value !== false;
@@ -122,8 +122,15 @@ var JsonConditionChecker = class {
    * @returns 
    */
   getValueFromDotNotation = (obj, path) => {
-    const index = path.indexOf(".");
+    const index = typeof path == "string" ? path.indexOf(".") : -1;
     if (index === -1) {
+      if (typeof path == "undefined") {
+        console.warn("Object path is undefined", {
+          obj,
+          path
+        });
+        return obj;
+      }
       if (typeof obj[path] == "undefined") {
         return obj;
       }
@@ -132,7 +139,14 @@ var JsonConditionChecker = class {
       }
       return obj[path];
     }
-    return this.getValueFromDotNotation(obj[path.slice(0, index)], path.slice(index + 1));
+    const newObject = obj[path.slice(0, index)];
+    const newPath = path.slice(index + 1);
+    if (Array.isArray(newObject)) {
+      return newObject.map((o) => {
+        return this.getValueFromDotNotation(o, newPath);
+      });
+    }
+    return this.getValueFromDotNotation(newObject, newPath);
   };
   /**
    * @inheritdoc
@@ -144,10 +158,16 @@ var JsonConditionChecker = class {
    * @inheritdoc
    */
   compare = (value, condition, conditionValue) => {
-    if (typeof ConditionTests_default[condition] === "function") {
-      return ConditionTests_default[condition](value, conditionValue);
+    if (typeof ConditionTests_default[condition] !== "function") {
+      console.warn(`Invalid condition: ${condition}`);
+      return false;
     }
-    return false;
+    if (ConditionTests_default.IS_ARRAY(value)) {
+      return value.some((v) => {
+        return this.compare(v, condition, conditionValue);
+      });
+    }
+    return ConditionTests_default[condition](value, conditionValue);
   };
   /**
    * @inheritdoc
@@ -155,15 +175,15 @@ var JsonConditionChecker = class {
   check = () => {
     if (this.allOrAny === "all") {
       return this.conditions.every((c) => {
-        const { element, condition, value } = c;
-        const elValue = this.getValue(element);
+        const { option, condition, value } = c;
+        const elValue = this.getValue(option);
         return this.compare(elValue, condition, value);
       });
     }
     if (this.allOrAny === "any") {
       return this.conditions.some((c) => {
-        const { element, condition, value } = c;
-        const elValue = this.getValue(element);
+        const { option, condition, value } = c;
+        const elValue = this.getValue(option);
         return this.compare(elValue, condition, value);
       });
     }
@@ -182,39 +202,103 @@ var FormConditionChecker = class {
     this.allOrAny = allOrAny;
   }
   /**
+   * Get an array of the elements values to compare. Could be one or more element values.
+   * @param element 
+   * @param addElementValues 
+   * @returns {Array<any>}
+   */
+  getElementValues = (element, addElementValues) => {
+    let elValues = this.getValue(element);
+    if (addElementValues) {
+      elValues = [...elValues, ...addElementValues];
+    }
+    return elValues;
+  };
+  /**
    * @inheritdoc
    */
-  getValue = (inputName) => {
-    let input = document.querySelector(`input[type="text"][name="${inputName}"]`);
+  getValue = (element) => {
+    var _a, _b, _c, _d;
+    if (typeof element === "object") {
+      if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) {
+        return [element.value];
+      }
+      if (element instanceof NodeList) {
+        return Array.from(element).map((el) => {
+          return this.getValue(el);
+        });
+      }
+    }
+    let input = document.querySelector(`input[name="${element}"]:not([type="radio"]):not([type="checkbox"])`);
     if (input) {
-      return input.value;
+      return [input.value];
     }
-    let textarea = document.querySelector(`textarea[name="${inputName}"]`);
+    input = document.querySelector(`input[type="number"][name="${element}"]`);
+    if (input) {
+      return [input.value];
+    }
+    let textarea = document.querySelector(`textarea[name="${element}"]`);
     if (textarea) {
-      return textarea.value;
+      return [textarea.value];
     }
-    let select = document.querySelector(`select[name="${inputName}"]`);
+    let select = document.querySelector(`select[name="${element}"]`);
     if (select) {
-      return select.value;
+      return [
+        select.value,
+        select.options[select.selectedIndex].textContent
+      ];
     }
-    let radio = document.querySelector(`input[type="radio"][name="${inputName}"]:checked`);
+    let radio = document.querySelector(`input[type="radio"][name="${element}"]:checked`);
     if (radio) {
-      return radio.value;
+      return [
+        radio.value,
+        (_b = (_a = radio.closest("label")) == null ? void 0 : _a.textContent) == null ? void 0 : _b.trim()
+      ];
     }
-    let checkbox = document.querySelector(`input[type="checkbox"][name="${inputName}"]:checked`);
-    if (checkbox) {
-      return checkbox.value;
+    let checkbox = document.querySelectorAll(`input[type="checkbox"][name="${element}"]:checked`);
+    if (checkbox.length > 0) {
+      if (checkbox.length > 1) {
+        let values = [];
+        checkbox.forEach((cb) => {
+          var _a2, _b2;
+          let newValues = [
+            cb.value,
+            (_b2 = (_a2 = cb.closest("label")) == null ? void 0 : _a2.textContent) == null ? void 0 : _b2.trim()
+          ];
+          values = [
+            ...values,
+            ...newValues
+          ];
+        });
+        return values;
+      }
+      return [
+        checkbox[0].value,
+        (_d = (_c = checkbox[0].closest("label")) == null ? void 0 : _c.textContent) == null ? void 0 : _d.trim()
+      ];
     }
-    return null;
+    return [];
   };
   /**
    * @inheritdoc
    */
   compare = (value, condition, conditionValue) => {
-    if (typeof ConditionTests_default[condition] === "function") {
-      return ConditionTests_default[condition](value, conditionValue);
+    if (typeof ConditionTests_default[condition] !== "function") {
+      console.warn(`Invalid condition: ${condition}`);
+      return false;
     }
-    return false;
+    if (ConditionTests_default.IS_ARRAY(value) && value.length > 0) {
+      if (ConditionTests_default.CONTAINS(condition, "NOT")) {
+        return !value.every((v) => {
+          return this.compare(v, conditionValue, conditionValue);
+        });
+      } else {
+        return value.some((v) => {
+          return this.compare(v, condition, conditionValue);
+        });
+      }
+    }
+    return ConditionTests_default[condition](value, conditionValue);
   };
   /**
    * @inheritdoc
@@ -222,16 +306,16 @@ var FormConditionChecker = class {
   check = () => {
     if (this.allOrAny === "all") {
       return this.conditions.every((c) => {
-        const { element, condition, value } = c;
-        const elValue = this.getValue(element);
-        return this.compare(elValue, condition, value);
+        const { element, addElementValues, condition, value } = c;
+        let elValues = this.getElementValues(element, addElementValues);
+        return this.compare(elValues, condition, value);
       });
     }
     if (this.allOrAny === "any") {
       return this.conditions.some((c) => {
-        const { element, condition, value } = c;
-        const elValue = this.getValue(element);
-        return this.compare(elValue, condition, value);
+        const { element, addElementValues, condition, value } = c;
+        let elValues = this.getElementValues(element, addElementValues);
+        return this.compare(elValues, condition, value);
       });
     }
     console.warn("Invalid allOrAny value");

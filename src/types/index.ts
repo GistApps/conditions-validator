@@ -1,8 +1,9 @@
 
 export type FormConditionInterface = {
-  element: string;   // HTML input, select or textarea name
-  condition: string; // eg. 'CONTAINS', 'EQUALS', 'GREATER_THAN', 'LESS_THAN'
-  value: any;        // eg. undefined, null, false, 0, 1, 'string', ['array'], {object}
+  element: string|HTMLElement|NodeList; // HTML input, select or textarea name attribute || or the element itself
+  addElementValues?: any[];    // In case we need to see if more than one element value matches the condition value.
+  condition: string;           // eg. 'CONTAINS', 'EQUALS', 'GREATER_THAN', 'LESS_THAN'
+  value: any;                  // eg. undefined, null, false, 0, 1, 'string', ['array'], {object}
 }
 
 export type JSONConditionInterface = {

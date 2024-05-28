@@ -8,7 +8,7 @@ const tests = {
     return value !== null;
   },
   NOT_EMPTY: (value: any) => {
-    return value !== "";
+    return value !== "" && (Array.isArray(value) ? value.length > 0 : true);
   },
   NOT_FALSE: (value: any) => {
     return value !== false;

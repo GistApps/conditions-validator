@@ -17,41 +17,108 @@ abstract class FormConditionChecker implements ConditionCheckerInterface {
   }
 
   /**
+   * Get an array of the elements values to compare. Could be one or more element values.
+   * @param element 
+   * @param addElementValues 
+   * @returns {Array<any>}
+   */
+  getElementValues = (element: string|HTMLElement|NodeList, addElementValues?: any[]): any[] => {
+
+    let elValues = this.getValue(element);
+
+    if (addElementValues) {
+      elValues = [...elValues, ...addElementValues];
+    }
+
+    return elValues;
+
+  };
+
+  /**
    * @inheritdoc
    */
-  getValue = (inputName: string): any => {
+  getValue = (element: string|HTMLElement|Node|NodeList): any => {
     
-    let input = document.querySelector(`input[type="text"][name="${inputName}"]`) as HTMLInputElement;
+    // Handle pre-defined HTML Elements
+    if (typeof(element) === 'object') {
+      if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement) {
+        return [element.value];
+      }
+      if (element instanceof NodeList) {
+        return Array.from(element).map((el) => {
+          return this.getValue(el);
+        });
+      }
+    }
+
+    let input = document.querySelector(`input[name="${element}"]:not([type="radio"]):not([type="checkbox"])`) as HTMLInputElement;
 
     if (input) {
-      return input.value;
+      return [input.value];
     }
 
-    let textarea = document.querySelector(`textarea[name="${inputName}"]`) as HTMLTextAreaElement;
+    input = document.querySelector(`input[type="number"][name="${element}"]`) as HTMLInputElement;
+
+    if (input) {
+      return [input.value];
+    }
+
+    let textarea = document.querySelector(`textarea[name="${element}"]`) as HTMLTextAreaElement;
 
     if (textarea) {
-      return textarea.value;
+      return [textarea.value];
     }
 
-    let select = document.querySelector(`select[name="${inputName}"]`) as HTMLSelectElement;
+    let select = document.querySelector(`select[name="${element}"]`) as HTMLSelectElement;
 
     if (select) {
-      return select.value;
+      return [
+        select.value,
+        select.options[select.selectedIndex].textContent
+      ];
     }
 
-    let radio = document.querySelector(`input[type="radio"][name="${inputName}"]:checked`) as HTMLInputElement;
+    let radio = document.querySelector(`input[type="radio"][name="${element}"]:checked`) as HTMLInputElement;
 
     if (radio) {
-      return radio.value;
+      return [
+        radio.value,
+        radio.closest('label')?.textContent?.trim()
+      ];
     }
 
-    let checkbox = document.querySelector(`input[type="checkbox"][name="${inputName}"]:checked`) as HTMLInputElement;
+    let checkbox = document.querySelectorAll(`input[type="checkbox"][name="${element}"]:checked`) as NodeListOf<HTMLInputElement>;
 
-    if (checkbox) {
-      return checkbox.value;
+    if (checkbox.length > 0) {
+
+      if (checkbox.length > 1) {
+        
+        let values: any = [];
+        
+        checkbox.forEach((cb) => {
+
+          let newValues = [
+            cb.value,
+            cb.closest('label')?.textContent?.trim()
+          ];
+
+          values = [
+            ...values,
+            ...newValues
+          ];
+
+        });
+
+        return values;
+      }
+
+      return [
+        checkbox[0].value,
+        checkbox[0].closest('label')?.textContent?.trim()
+      ];
     }
 
-    return null;
+    return [];
 
   }
 
@@ -60,11 +127,27 @@ abstract class FormConditionChecker implements ConditionCheckerInterface {
    */
   compare = (value: any, condition: string, conditionValue: any): boolean => {
 
-    if (typeof(ConditionTests[condition]) === 'function') {
-      return ConditionTests[condition](value, conditionValue);
+    if (typeof(ConditionTests[condition]) !== 'function') {
+      console.warn(`Invalid condition: ${condition}`);
+      return false;
     }
 
-    return false;
+    if (ConditionTests.IS_ARRAY(value) && value.length > 0) {
+      
+      // If the condition is NOT, we need to check all values
+      if (ConditionTests.CONTAINS(condition, 'NOT')) {
+        return !value.every((v) => {
+          return this.compare(v, conditionValue, conditionValue);
+        });
+      } else {
+        return value.some((v) => {
+          return this.compare(v, condition, conditionValue);
+        });
+      }
+
+    }
+
+    return ConditionTests[condition](value, conditionValue);
 
   }
 
@@ -75,17 +158,24 @@ abstract class FormConditionChecker implements ConditionCheckerInterface {
     
     if (this.allOrAny === 'all') {
       return this.conditions.every((c) => {
-        const { element, condition, value } = c;
-        const elValue = this.getValue(element);
-        return this.compare(elValue, condition, value);
+        
+        const { element, addElementValues, condition, value } = c;
+        
+        let elValues = this.getElementValues(element, addElementValues);
+
+        return this.compare(elValues, condition, value);
       });
     }
 
     if (this.allOrAny === 'any') {
       return this.conditions.some((c) => {
-        const { element, condition, value } = c;
-        const elValue = this.getValue(element);
-        return this.compare(elValue, condition, value);
+        
+        const { element, addElementValues, condition, value } = c;
+        
+        let elValues = this.getElementValues(element, addElementValues);
+
+        return this.compare(elValues, condition, value);
+
       });
     }
     

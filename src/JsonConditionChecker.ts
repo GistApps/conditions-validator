@@ -25,9 +25,18 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
    */
   getValueFromDotNotation = (obj: any, path: string): any => {
     
-    const index = path.indexOf('.');
+    const index = typeof(path) == 'string' ? path.indexOf('.') : -1;
 
     if (index === -1) {
+
+      // For some reason path is undefined. Throw a warning.
+      if (typeof(path) == "undefined") {
+        console.warn("Object path is undefined", {
+          obj,
+          path
+        });
+        return obj;
+      }
 
       // Return object if the following path is undefined
       // This likely means that the object is an array
@@ -75,11 +84,12 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
   compare = (value: any, condition: string, conditionValue: any): boolean => {
 
     if (typeof(ConditionTests[condition]) !== 'function') {
+      console.warn(`Invalid condition: ${condition}`);
       return false;
     }
 
     if (ConditionTests.IS_ARRAY(value)) {
-      return value.some((v) => {
+      return value.some((v: any) => {
         return this.compare(v, condition, conditionValue);
       });
     }

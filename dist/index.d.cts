@@ -43,7 +43,8 @@ declare const tests: {
 };
 
 type FormConditionInterface = {
-    element: string;
+    element: string | HTMLElement | NodeList;
+    addElementValues?: any[];
     condition: string;
     value: any;
 };
@@ -78,10 +79,10 @@ interface ConditionCheckerInterface {
 }
 
 declare abstract class JsonConditionChecker implements ConditionCheckerInterface {
-    conditions: Array<FormConditionInterface>;
+    conditions: Array<JSONConditionInterface>;
     allOrAny: AllOrAnyType;
     json: any;
-    constructor(conditions: Array<FormConditionInterface>, allOrAny: AllOrAnyType, json: any);
+    constructor(conditions: Array<JSONConditionInterface>, allOrAny: AllOrAnyType, json: any);
     /**
      * Validation config is set up in dot notation to match the form html structure
      * @param {*} obj
@@ -108,9 +109,16 @@ declare abstract class FormConditionChecker implements ConditionCheckerInterface
     allOrAny: AllOrAnyType;
     constructor(conditions: Array<FormConditionInterface>, allOrAny: AllOrAnyType);
     /**
+     * Get an array of the elements values to compare. Could be one or more element values.
+     * @param element
+     * @param addElementValues
+     * @returns {Array<any>}
+     */
+    getElementValues: (element: string | HTMLElement | NodeList, addElementValues?: any[]) => any[];
+    /**
      * @inheritdoc
      */
-    getValue: (inputName: string) => any;
+    getValue: (element: string | HTMLElement | Node | NodeList) => any;
     /**
      * @inheritdoc
      */
