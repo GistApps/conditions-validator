@@ -78,6 +78,21 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
 
   }
 
+  compareEach = (value: any, condition: string, conditionValue: any): boolean => {
+
+    // If the condition is NOT, we need to check to see if "Not every value" matches the condition
+    if (ConditionTests.CONTAINS(condition, 'NOT')) {
+      return !value.every((v) => {
+        return this.compare(v, condition, conditionValue);
+      });
+    } else {
+      return value.some((v) => {
+        return this.compare(v, condition, conditionValue);
+      });
+    }
+
+  }
+
   /**
    * @inheritdoc
    */
@@ -89,9 +104,15 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
     }
 
     if (ConditionTests.IS_ARRAY(value)) {
-      return value.some((v: any) => {
-        return this.compare(v, condition, conditionValue);
-      });
+      return this.compareEach(value, condition, conditionValue);
+    }
+
+    // For objects, compare each key and value
+    if (ConditionTests.IS_OBJECT(value)) {
+      const keysMatch = this.compareEach(Object.keys(value), condition, conditionValue);
+      const valuesMatch = this.compareEach(Object.values(value), condition, conditionValue);
+      return keysMatch || valuesMatch;
+
     }
 
     return ConditionTests[condition](value, conditionValue);

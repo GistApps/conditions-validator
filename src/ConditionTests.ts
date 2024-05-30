@@ -22,9 +22,13 @@ const tests = {
   IS_ARRAY: (value: any) => {
     return Array.isArray(value);
   },
+  /**
+   * Thanks to https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript/8511350#8511350
+   */
   IS_OBJECT: (value: any) => {
-    return tests.NOT_NULL(value) && typeof value === "object";
+    return typeof value === 'object' && !Array.isArray(value) && value !== null;
   },
+  
   IS_FUNCTION: (value: any) => {
     return typeof value === "function";
   },

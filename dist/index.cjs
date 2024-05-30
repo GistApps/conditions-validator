@@ -48,8 +48,11 @@ var tests = {
   IS_ARRAY: (value) => {
     return Array.isArray(value);
   },
+  /**
+   * Thanks to https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript/8511350#8511350
+   */
   IS_OBJECT: (value) => {
-    return tests.NOT_NULL(value) && typeof value === "object";
+    return typeof value === "object" && !Array.isArray(value) && value !== null;
   },
   IS_FUNCTION: (value) => {
     return typeof value === "function";
@@ -154,6 +157,17 @@ var JsonConditionChecker = class {
   getValue = (element) => {
     return this.getValueFromDotNotation(this.json, element);
   };
+  compareEach = (value, condition, conditionValue) => {
+    if (ConditionTests_default.CONTAINS(condition, "NOT")) {
+      return !value.every((v) => {
+        return this.compare(v, condition, conditionValue);
+      });
+    } else {
+      return value.some((v) => {
+        return this.compare(v, condition, conditionValue);
+      });
+    }
+  };
   /**
    * @inheritdoc
    */
@@ -163,9 +177,12 @@ var JsonConditionChecker = class {
       return false;
     }
     if (ConditionTests_default.IS_ARRAY(value)) {
-      return value.some((v) => {
-        return this.compare(v, condition, conditionValue);
-      });
+      return this.compareEach(value, condition, conditionValue);
+    }
+    if (ConditionTests_default.IS_OBJECT(value)) {
+      const keysMatch = this.compareEach(Object.keys(value), condition, conditionValue);
+      const valuesMatch = this.compareEach(Object.values(value), condition, conditionValue);
+      return keysMatch || valuesMatch;
     }
     return ConditionTests_default[condition](value, conditionValue);
   };
@@ -279,6 +296,17 @@ var FormConditionChecker = class {
     }
     return [];
   };
+  compareEach = (value, condition, conditionValue) => {
+    if (ConditionTests_default.CONTAINS(condition, "NOT")) {
+      return !value.every((v) => {
+        return this.compare(v, condition, conditionValue);
+      });
+    } else {
+      return value.some((v) => {
+        return this.compare(v, condition, conditionValue);
+      });
+    }
+  };
   /**
    * @inheritdoc
    */
@@ -288,15 +316,7 @@ var FormConditionChecker = class {
       return false;
     }
     if (ConditionTests_default.IS_ARRAY(value) && value.length > 0) {
-      if (ConditionTests_default.CONTAINS(condition, "NOT")) {
-        return !value.every((v) => {
-          return this.compare(v, conditionValue, conditionValue);
-        });
-      } else {
-        return value.some((v) => {
-          return this.compare(v, condition, conditionValue);
-        });
-      }
+      return this.compareEach(value, condition, conditionValue);
     }
     return ConditionTests_default[condition](value, conditionValue);
   };
