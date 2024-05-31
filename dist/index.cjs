@@ -176,8 +176,11 @@ var JsonConditionChecker = class {
       console.warn(`Invalid condition: ${condition}`);
       return false;
     }
-    if (ConditionTests_default.IS_ARRAY(value)) {
+    if (ConditionTests_default.IS_ARRAY(value) && value.length > 1) {
       return this.compareEach(value, condition, conditionValue);
+    }
+    if (ConditionTests_default.IS_ARRAY(value) && value.length === 1) {
+      value = value[0];
     }
     if (ConditionTests_default.IS_OBJECT(value)) {
       const keysMatch = this.compareEach(Object.keys(value), condition, conditionValue);

@@ -103,8 +103,12 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
       return false;
     }
 
-    if (ConditionTests.IS_ARRAY(value)) {
+    if (ConditionTests.IS_ARRAY(value) && value.length > 1) {
       return this.compareEach(value, condition, conditionValue);
+    }
+
+    if (ConditionTests.IS_ARRAY(value) && value.length === 1) {
+      value = value[0];
     }
 
     // For objects, compare each key and value
