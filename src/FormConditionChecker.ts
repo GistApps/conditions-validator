@@ -147,8 +147,12 @@ abstract class FormConditionChecker implements ConditionCheckerInterface {
       return false;
     }
 
-    if (ConditionTests.IS_ARRAY(value) && value.length > 0) {
+    if (ConditionTests.IS_ARRAY(value) && value.length > 1) {
       return this.compareEach(value, condition, conditionValue);
+    }
+
+    if (ConditionTests.IS_ARRAY(value) && value.length === 1) {
+      value = value[0];
     }
 
     return ConditionTests[condition](value, conditionValue);
