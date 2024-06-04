@@ -318,8 +318,11 @@ var FormConditionChecker = class {
       console.warn(`Invalid condition: ${condition}`);
       return false;
     }
-    if (ConditionTests_default.IS_ARRAY(value) && value.length > 0) {
+    if (ConditionTests_default.IS_ARRAY(value) && value.length > 1) {
       return this.compareEach(value, condition, conditionValue);
+    }
+    if (ConditionTests_default.IS_ARRAY(value) && value.length === 1) {
+      value = value[0];
     }
     return ConditionTests_default[condition](value, conditionValue);
   };
