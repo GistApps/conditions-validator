@@ -81,12 +81,14 @@ const tests = {
    */
   EQUALS: (value: any, testValue: any) => {
 
+    // Test numbers first, as typeof NaN is number will work for string type numbers
     if (tests.IS_NUMBER(value) && tests.IS_NUMBER(testValue) {
       return Number(value) === Number(testValue);
     }
 
+    // Test this after numbers, as IS_STRING will return fals for floats and integers
     if (tests.IS_STRING(value) && tests.IS_STRING(testValue)) {
-      return value === testValue;
+      return value.toString() === testValue.toString();
     }
 
     if (tests.IS_ARRAY(value) && tests.IS_ARRAY(testValue)) {
