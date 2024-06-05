@@ -10,6 +10,10 @@ declare const tests: {
      * Thanks to https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript/8511350#8511350
      */
     IS_OBJECT: (value: any) => boolean;
+    /**
+     * Thanks to https://stackoverflow.com/questions/679915/how-do-i-test-for-an-empty-javascript-object
+     */
+    IS_EMPTY_OBJECT: (value: any) => boolean;
     IS_FUNCTION: (value: any) => boolean;
     /**
      * Checks if the value given IS NOT undefined, empty, null or false
@@ -97,7 +101,7 @@ declare abstract class JsonConditionChecker implements ConditionCheckerInterface
      * @inheritdoc
      */
     getValue: (element: string) => any;
-    compareEach: (value: any, condition: string, conditionValue: any) => boolean;
+    compareEach: (value: any[], condition: string, conditionValue: any) => boolean;
     /**
      * @inheritdoc
      */
@@ -123,7 +127,7 @@ declare abstract class FormConditionChecker implements ConditionCheckerInterface
      * @inheritdoc
      */
     getValue: (element: string | HTMLElement | Node | NodeList) => any;
-    compareEach: (value: any, condition: string, conditionValue: any) => boolean;
+    compareEach: (value: any[], condition: string, conditionValue: any) => boolean;
     /**
      * @inheritdoc
      */

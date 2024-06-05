@@ -34,7 +34,7 @@ var tests = {
     return value !== null;
   },
   NOT_EMPTY: (value) => {
-    return value !== "" && (Array.isArray(value) ? value.length > 0 : true);
+    return tests.NOT_NULL(value) && value !== "" && (tests.IS_ARRAY(value) ? value.length > 0 : true) && (tests.IS_OBJECT(value) ? !tests.IS_EMPTY_OBJECT(value) : true);
   },
   NOT_FALSE: (value) => {
     return value !== false;
@@ -53,6 +53,24 @@ var tests = {
    */
   IS_OBJECT: (value) => {
     return typeof value === "object" && !Array.isArray(value) && value !== null;
+  },
+  /**
+   * Thanks to https://stackoverflow.com/questions/679915/how-do-i-test-for-an-empty-javascript-object
+   */
+  IS_EMPTY_OBJECT: (value) => {
+    if (!tests.IS_OBJECT(value)) {
+      return false;
+    }
+    const proto = Object.getPrototypeOf(value);
+    if (proto !== null && proto !== Object.prototype) {
+      return false;
+    }
+    for (const prop in value) {
+      if (Object.prototype.hasOwnProperty.call(value, prop)) {
+        return false;
+      }
+    }
+    return true;
   },
   IS_FUNCTION: (value) => {
     return typeof value === "function";
@@ -73,7 +91,19 @@ var tests = {
    * Checks if the value given is equal to a test value
    */
   EQUALS: (value, testValue) => {
-    return tests.IS_SET(value) && tests.IS_SET(testValue) && value.toString() === testValue.toString();
+    if (tests.IS_NUMBER(value) && tests.IS_NUMBER(testValue)) {
+      return Number(value) === Number(testValue);
+    }
+    if (tests.IS_STRING(value) && tests.IS_STRING(testValue)) {
+      return value.toString() === testValue.toString();
+    }
+    if (tests.IS_ARRAY(value) && tests.IS_ARRAY(testValue)) {
+      return JSON.stringify(value) === JSON.stringify(testValue);
+    }
+    if (tests.IS_OBJECT(value) && tests.IS_OBJECT(testValue)) {
+      return JSON.stringify(value) === JSON.stringify(testValue);
+    }
+    return value === testValue;
   },
   /**
    * Checks if the value given is not equal to a test value
@@ -85,7 +115,7 @@ var tests = {
    * Checks if the value given contains a test value
    */
   CONTAINS: (value, testValue) => {
-    return tests.IS_STRING(value) && value.includes(testValue);
+    return (tests.IS_STRING(value) || tests.IS_ARRAY(value)) && value.includes(testValue);
   },
   /**
    * Checks if the value given does not contain a test value
@@ -158,15 +188,12 @@ var JsonConditionChecker = class {
     return this.getValueFromDotNotation(this.json, element);
   };
   compareEach = (value, condition, conditionValue) => {
-    if (ConditionTests_default.CONTAINS(condition, "NOT")) {
-      return !value.every((v) => {
-        return this.compare(v, condition, conditionValue);
-      });
-    } else {
-      return value.some((v) => {
-        return this.compare(v, condition, conditionValue);
-      });
+    if (value.length === 0) {
+      return ConditionTests_default.CONTAINS(condition, "NOT");
     }
+    return value.some((v) => {
+      return this.compare(v, condition, conditionValue);
+    });
   };
   /**
    * @inheritdoc
