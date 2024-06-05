@@ -122,7 +122,7 @@ abstract class FormConditionChecker implements ConditionCheckerInterface {
 
   }
 
-  compareEach = (value: any, condition: string, conditionValue: any): boolean => {
+  compareEach = (value: any[], condition: string, conditionValue: any): boolean => {
 
     // If the condition is NOT, we need to check to see if "Not every value" matches the condition
     if (ConditionTests.CONTAINS(condition, 'NOT')) {

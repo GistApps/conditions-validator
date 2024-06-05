@@ -82,7 +82,7 @@ const tests = {
   EQUALS: (value: any, testValue: any) => {
 
     // Test numbers first, as typeof NaN is number will work for string type numbers
-    if (tests.IS_NUMBER(value) && tests.IS_NUMBER(testValue) {
+    if (tests.IS_NUMBER(value) && tests.IS_NUMBER(testValue)) {
       return Number(value) === Number(testValue);
     }
 
