@@ -2,3 +2,4 @@ src/
 tests/
 .github/
 tsup.config.ts
+babel.config.cjs
