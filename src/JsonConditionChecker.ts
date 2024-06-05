@@ -121,7 +121,7 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
     if (ConditionTests.IS_OBJECT(value)) {
       const keysMatch = this.compareEach(Object.keys(value), condition, conditionValue);
       const valuesMatch = this.compareEach(Object.values(value), condition, conditionValue);
-      return keysMatch || valuesMatch;
+      return ConditionTests.CONTAINS(condition, "NOT") ? keysMatch && valuesMatch : keysMatch || valuesMatch;
 
     }
 

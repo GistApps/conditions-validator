@@ -212,7 +212,7 @@ var JsonConditionChecker = class {
     if (ConditionTests_default.IS_OBJECT(value)) {
       const keysMatch = this.compareEach(Object.keys(value), condition, conditionValue);
       const valuesMatch = this.compareEach(Object.values(value), condition, conditionValue);
-      return keysMatch || valuesMatch;
+      return ConditionTests_default.CONTAINS(condition, "NOT") ? keysMatch && valuesMatch : keysMatch || valuesMatch;
     }
     return ConditionTests_default[condition](value, conditionValue);
   };

@@ -1,65 +1,10 @@
 import { describe, expect, test } from '@jest/globals';
+import { testData } from './data';
 import { JsonConditionChecker } from "../src";
 
 class JsonValidator extends JsonConditionChecker {};
 
 describe('JSON CONDITION CHECKER', () => {
-
-  const testCartData = {
-    /** LEVEL 1 DATA **/
-    "total_price": 65490,
-    "total_discount": 0,
-    "item_count": 2,
-    "total_weight": 56.699,
-    "currency": "CAD",
-    "requires_shipping": true,
-    "items": [
-      {
-        /** LEVEL 2 DATA **/
-        "final_price": 2495,
-        "total_discount": 0,
-        "grams": 57,
-        "vendor": "Test Vendor",
-        "product_title": "Selling Plans Ski Wax",
-        "product_type": "Wax",
-        "product_description": null,
-        "quantity": 1,
-        "sku": "",
-        "product_id": 7650619785397,
-        "variant_id": 43605568389301,
-        "variant_title": "Selling Plans Ski Wax",
-        "properties": {
-          /** LEVEL 3 DATA **/
-          "message": "2030-12-25",
-          "delivery-date": "2030-12-25",
-        },
-        "gift_card": false,
-      },
-      {
-        
-        "final_price": 62995,
-        "total_discount": 0,
-        "grams": 0,
-        "vendor": "Multi-managed Vendor",
-        "product_title": "The Multi-managed Snowboard",
-        "product_type": "",
-        "product_description": null,
-        "quantity": 1,
-        "sku": "sku-managed-1",
-        "product_id": 7650619621557,
-        "variant_id": 43605567963317,
-        "variant_title": null,
-        "properties": {},
-        "gift_card": false,
-      },
-    ],
-  };
-
-  // Modified cart data with single item (Level 2 data)
-  const testDataSingleItem = { ...testCartData, items: [testCartData.items[0]] };
-
-  // Modified cart data with single item (Level 2 data) and empty properties object (Level 3 data)
-  const testDataEmptyProps = { ...testCartData, items: [testCartData.items[1]] };
 
   /**
    * @test Level 1 cart data -> Any rule type
@@ -92,9 +37,9 @@ describe('JSON CONDITION CHECKER', () => {
       },
     ];
 
-    const truthyJsonChecker = new JsonValidator(truthyDisplayRules, "any", testCartData);
-    const falsyJsonChecker = new JsonValidator(falsyDisplayRules, "any", testCartData);
-    const truthyFalsyJsonChecker = new JsonValidator([ ...truthyDisplayRules, ...falsyDisplayRules ], "any", testCartData);
+    const truthyJsonChecker = new JsonValidator(truthyDisplayRules, "any", testData.multipleItems);
+    const falsyJsonChecker = new JsonValidator(falsyDisplayRules, "any", testData.multipleItems);
+    const truthyFalsyJsonChecker = new JsonValidator([ ...truthyDisplayRules, ...falsyDisplayRules ], "any", testData.multipleItems);
 
     expect(truthyJsonChecker.check()).toBe(true);
     expect(falsyJsonChecker.check()).toBe(false);
@@ -133,9 +78,9 @@ describe('JSON CONDITION CHECKER', () => {
       },
     ];
 
-    const truthyJsonChecker = new JsonValidator(truthyDisplayRules, "all", testCartData);
-    const falsyJsonChecker = new JsonValidator(falsyDisplayRules, "all", testCartData);
-    const truthyFalsyJsonChecker = new JsonValidator([ ...truthyDisplayRules, ...falsyDisplayRules ], "all", testCartData);
+    const truthyJsonChecker = new JsonValidator(truthyDisplayRules, "all", testData.multipleItems);
+    const falsyJsonChecker = new JsonValidator(falsyDisplayRules, "all", testData.multipleItems);
+    const truthyFalsyJsonChecker = new JsonValidator([ ...truthyDisplayRules, ...falsyDisplayRules ], "all", testData.multipleItems);
 
     expect(truthyJsonChecker.check()).toBe(true);
     expect(falsyJsonChecker.check()).toBe(false);
@@ -181,7 +126,7 @@ describe('JSON CONDITION CHECKER', () => {
       },
     ];
 
-    const jsonChecker = new JsonValidator(displayRules, "all", testCartData);
+    const jsonChecker = new JsonValidator(displayRules, "all", testData.multipleItems);
 
     expect(jsonChecker.check()).toBe(true);
 
@@ -220,7 +165,7 @@ describe('JSON CONDITION CHECKER', () => {
       },
     ];
 
-    const jsonChecker = new JsonValidator(displayRules, "all", testDataSingleItem);
+    const jsonChecker = new JsonValidator(displayRules, "all", testData.singleItemMultipleProps);
 
     expect(jsonChecker.check()).toBe(true);
 
@@ -267,8 +212,8 @@ describe('JSON CONDITION CHECKER', () => {
       },
     ];
   
-    const truthyJsonChecker = new JsonValidator(truthyDisplayRules, "all", testDataSingleItem);
-    const falsyJsonChecker = new JsonValidator(falsyDisplayRules, "any", testDataSingleItem);
+    const truthyJsonChecker = new JsonValidator(truthyDisplayRules, "all", testData.multipleItems);
+    const falsyJsonChecker = new JsonValidator(falsyDisplayRules, "any", testData.multipleItems);
 
     expect(truthyJsonChecker.check()).toBe(true);
     expect(falsyJsonChecker.check()).toBe(false);
@@ -276,9 +221,9 @@ describe('JSON CONDITION CHECKER', () => {
   });
 
   /**
-   * @test Level 3 cart data -> Single element array of Level 2 data and Level 3 data has elements
+   * @test Level 3 cart data -> Single element array of Level 2 data and Level 3 data has MULTIPLE elements
    */
-  test('6) Checks level 3 JSON data (level 2 data is single element array & level 3 data has elements)', () => {
+  test('6) Checks level 3 JSON data (level 2 data is single element array & level 3 data has multiple elements)', () => {
 
     const truthyDisplayRules = [
       {
@@ -316,8 +261,8 @@ describe('JSON CONDITION CHECKER', () => {
       },
     ];
 
-    const truthyJsonChecker = new JsonValidator(truthyDisplayRules, "all", testDataSingleItem);
-    const falsyJsonChecker = new JsonValidator(falsyDisplayRules, "any", testDataSingleItem);
+    const truthyJsonChecker = new JsonValidator(truthyDisplayRules, "all", testData.singleItemMultipleProps);
+    const falsyJsonChecker = new JsonValidator(falsyDisplayRules, "any", testData.singleItemMultipleProps);
 
     expect(truthyJsonChecker.check()).toBe(true);
     expect(falsyJsonChecker.check()).toBe(false);
@@ -355,8 +300,52 @@ describe('JSON CONDITION CHECKER', () => {
       },
     ];
 
-    const truthyJsonChecker = new JsonValidator(truthyDisplayRules, "all", testDataEmptyProps);
-    const falsyJsonChecker = new JsonValidator(falsyDisplayRules, "any", testDataEmptyProps);
+    const truthyJsonChecker = new JsonValidator(truthyDisplayRules, "all", testData.singleItemEmptyProps);
+    const falsyJsonChecker = new JsonValidator(falsyDisplayRules, "any", testData.singleItemEmptyProps);
+
+    expect(truthyJsonChecker.check()).toBe(true);
+    expect(falsyJsonChecker.check()).toBe(false);
+
+  });
+
+  /**
+   * @test Level 3 cart data -> Single element array of Level 2 data and Level 3 data has SINGLE element
+   */
+  test('8) Checks level 3 JSON data (level 2 data is single element array & level 3 data has single element)', () => {
+
+    const truthyDisplayRules = [
+      {
+        condition: "CONTAINS",
+        option: "items.properties",
+        value: "delivery-date",
+      },
+      {
+        condition: "CONTAINS",
+        option: "items.properties",
+        value: "2030-12-25",
+      },
+      {
+        condition: "NOT_CONTAINS",
+        option: "items.properties",
+        value: "message",
+      },
+    ];
+
+    const falsyDisplayRules = [
+      {
+        condition: "CONTAINS",
+        option: "items.properties",
+        value: "message",
+      },
+      {
+        condition: "NOT_CONTAINS",
+        option: "items.properties",
+        value: "2030-12-25",
+      },
+    ];
+
+    const truthyJsonChecker = new JsonValidator(truthyDisplayRules, "all", testData.singleItemSingleProps);
+    const falsyJsonChecker = new JsonValidator(falsyDisplayRules, "any", testData.singleItemSingleProps);
 
     expect(truthyJsonChecker.check()).toBe(true);
     expect(falsyJsonChecker.check()).toBe(false);
