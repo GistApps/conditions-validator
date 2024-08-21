@@ -137,7 +137,7 @@ var JsonConditionChecker = class {
         });
         return obj;
       }
-      if (typeof obj[path] == "undefined") {
+      if (typeof obj[path] == "undefined" && Array.isArray(obj)) {
         return obj;
       }
       if (typeof obj[path].value !== "undefined") {

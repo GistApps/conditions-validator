@@ -40,7 +40,7 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
 
       // Return object if the following path is undefined
       // This likely means that the object is an array
-      if (typeof(obj[path]) == "undefined") {
+      if (typeof(obj[path]) == "undefined" && Array.isArray(obj)) {
         return obj;
       }
 
