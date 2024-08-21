@@ -128,6 +128,7 @@ var JsonConditionChecker = class {
    * @returns 
    */
   getValueFromDotNotation = (obj, path) => {
+    var _a;
     const index = typeof path == "string" ? path.indexOf(".") : -1;
     if (index === -1) {
       if (typeof path == "undefined") {
@@ -140,7 +141,7 @@ var JsonConditionChecker = class {
       if (typeof obj[path] == "undefined" && Array.isArray(obj)) {
         return obj;
       }
-      if (typeof obj[path].value !== "undefined") {
+      if (typeof ((_a = obj[path]) == null ? void 0 : _a.value) !== "undefined") {
         return obj[path].value;
       }
       return obj[path];

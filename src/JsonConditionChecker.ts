@@ -45,7 +45,7 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
       }
 
       // Handle symfony form data
-      if (typeof(obj[path].value) !== "undefined") {
+      if (typeof(obj[path]?.value) !== "undefined") {
         return obj[path].value;
       }
 
