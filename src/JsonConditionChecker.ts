@@ -91,6 +91,12 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
     //     return this.compare(v, condition, conditionValue);
     //   });
     // }
+    if (condition.indexOf('ALL_') === 0) {
+      const baseCondition = condition.replace('ALL_', '');
+      return value.every((v) => {
+        return this.compare(v, baseCondition, conditionValue);
+      });
+    }
 
     // Scenario 3: Value is not an array of objects with a NOT condition.
     return value.some((v) => {
