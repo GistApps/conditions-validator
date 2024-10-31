@@ -110,7 +110,7 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
    */
   compare = (value: any, condition: string, conditionValue: any): boolean => {
 
-    if (typeof(ConditionTests[condition]) !== 'function') {
+    if (typeof(ConditionTests[condition]) !== 'function' && typeof(ConditionTests[condition.replace("ALL_", "")]) !== "function") {
       console.warn(`Invalid condition: ${condition}`);
       return false;
     }

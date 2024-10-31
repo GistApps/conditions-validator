@@ -95,7 +95,7 @@ describe('JSON CONDITION CHECKER', () => {
 
     const displayRules = [
       {
-        condition: "EQUALS",
+        condition: "ALL_EQUALS",
         option: "items.product_type",
         value: "Wax",
       },
