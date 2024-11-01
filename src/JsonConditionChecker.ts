@@ -121,6 +121,7 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
 
     if (ConditionTests.IS_ARRAY(value) && value.length === 1) {
       value = value[0];
+      condition = condition.replace('ALL_', '');
     }
 
     // For objects, compare each key and value
@@ -128,9 +129,17 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
       const keysMatch = this.compareEach(Object.keys(value), condition, conditionValue);
       const valuesMatch = this.compareEach(Object.values(value), condition, conditionValue);
       return ConditionTests.CONTAINS(condition, "NOT") ? keysMatch && valuesMatch : keysMatch || valuesMatch;
-
     }
 
+    if (condition.indexOf('ALL_') === 0) {
+      condition = condition.replace('ALL_', '');
+      console.warn("Condition is ALL_ but value is not an array", {
+        value,
+        condition,
+        conditionValue,
+      });
+    }
+    
     return ConditionTests[condition](value, conditionValue);
 
   }
