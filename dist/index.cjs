@@ -215,11 +215,20 @@ var JsonConditionChecker = class {
     }
     if (ConditionTests_default.IS_ARRAY(value) && value.length === 1) {
       value = value[0];
+      condition = condition.replace("ALL_", "");
     }
     if (ConditionTests_default.IS_OBJECT(value)) {
       const keysMatch = this.compareEach(Object.keys(value), condition, conditionValue);
       const valuesMatch = this.compareEach(Object.values(value), condition, conditionValue);
       return ConditionTests_default.CONTAINS(condition, "NOT") ? keysMatch && valuesMatch : keysMatch || valuesMatch;
+    }
+    if (condition.indexOf("ALL_") === 0) {
+      condition = condition.replace("ALL_", "");
+      console.warn("Condition is ALL_ but value is not an array", {
+        value,
+        condition,
+        conditionValue
+      });
     }
     return ConditionTests_default[condition](value, conditionValue);
   };
