@@ -192,6 +192,12 @@ var JsonConditionChecker = class {
     if (value.length === 0) {
       return ConditionTests_default.CONTAINS(condition, "NOT");
     }
+    if (condition.indexOf("ALL_") === 0) {
+      const baseCondition = condition.replace("ALL_", "");
+      return value.every((v) => {
+        return this.compare(v, baseCondition, conditionValue);
+      });
+    }
     return value.some((v) => {
       return this.compare(v, condition, conditionValue);
     });
@@ -200,7 +206,7 @@ var JsonConditionChecker = class {
    * @inheritdoc
    */
   compare = (value, condition, conditionValue) => {
-    if (typeof ConditionTests_default[condition] !== "function") {
+    if (typeof ConditionTests_default[condition] !== "function" && typeof ConditionTests_default[condition.replace("ALL_", "")] !== "function") {
       console.warn(`Invalid condition: ${condition}`);
       return false;
     }
@@ -342,7 +348,7 @@ var FormConditionChecker = class {
    * @inheritdoc
    */
   compare = (value, condition, conditionValue) => {
-    if (typeof ConditionTests_default[condition] !== "function") {
+    if (typeof ConditionTests_default[condition] !== "function" && typeof ConditionTests_default[condition.replace("ALL_", "")] !== "function") {
       console.warn(`Invalid condition: ${condition}`);
       return false;
     }
