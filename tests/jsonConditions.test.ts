@@ -1,3 +1,15 @@
+/**
+ * 
+ * @copyright     (c) 2024-2025 Gist Applications Inc.
+ * @author        Greg Olive greg@gist-apps.com
+ * @package       @gistapps/conditions-validator
+ * 
+ * /tests/jsonConditions.test.ts
+ * Created:       Fri Nov 01 2024
+ * Modified By:   Greg Olive
+ * Last Modified: Thu Mar 13 2025
+ */
+
 import { describe, expect, test } from '@jest/globals';
 import { testData } from './data';
 import { JsonConditionChecker } from "../src";
@@ -95,7 +107,7 @@ describe('JSON CONDITION CHECKER', () => {
 
     const displayRules = [
       {
-        condition: "ALL_EQUALS",
+        condition: "EQUALS",
         option: "items.product_type",
         value: "Wax",
       },
