@@ -25,6 +25,123 @@ __export(src_exports, {
 });
 module.exports = __toCommonJS(src_exports);
 
+// src/utils/dateFns.ts
+var parseDateString = (dateStr) => {
+  let parsedDate = null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    parsedDate = new Date(y, m - 1, d);
+  } else if (/^[A-Za-z]+\s+\d{1,2}(st|nd|rd|th),\s+\d{4}$/.test(dateStr)) {
+    parsedDate = new Date(dateStr.replace(/(st|nd|rd|th)/g, ""));
+  } else if (/^[A-Za-z]+,\s+[A-Za-z]+\s+\d{1,2}(st|nd|rd|th),\s+\d{4}$/.test(dateStr)) {
+    parsedDate = new Date(dateStr.replace(/(st|nd|rd|th)/g, ""));
+  } else if (/^\d{1,2}-\d{1,2}-\d{4}$/.test(dateStr)) {
+    const [d, m, y] = dateStr.split("-").map(Number);
+    parsedDate = new Date(y, m - 1, d);
+  } else if (/^\d{4}\/\d{1,2}\/\d{1,2}$/.test(dateStr)) {
+    const [y, m, d] = dateStr.split("/").map(Number);
+    parsedDate = new Date(y, m - 1, d);
+  } else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
+    const [a, b, c] = dateStr.split("/").map(Number);
+    if (a > 12) {
+      parsedDate = new Date(c, b - 1, a);
+    } else if (b > 12) {
+      parsedDate = new Date(c, a - 1, b);
+    } else {
+      parsedDate = new Date(c, a - 1, b);
+    }
+  } else {
+    parsedDate = new Date(dateStr);
+  }
+  if (!parsedDate || isNaN(parsedDate == null ? void 0 : parsedDate.getTime())) {
+    console.log(`Unrecognized date format: ${dateStr}`);
+    return null;
+  }
+  return parsedDate;
+};
+var getDaylightSavingOffset = (date) => {
+  const jan = new Date(date.getFullYear(), 0, 1);
+  const jul = new Date(date.getFullYear(), 6, 1);
+  const stdTimezoneOffset = Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+  return date.getTimezoneOffset() < stdTimezoneOffset ? 1 : 0;
+};
+var getDateNow = (dateConfig) => {
+  const now = /* @__PURE__ */ new Date();
+  if (dateConfig.cutoff_time_type === "customer_time") {
+    return now;
+  }
+  const timezone = dateConfig.timezone || "0";
+  const utcNow = now.getTime() + now.getTimezoneOffset() * 6e4;
+  const utcOffset = utcNow + (parseFloat(timezone) || 0) * 36e5;
+  const date = new Date(utcOffset);
+  const dstOffset = getDaylightSavingOffset(date);
+  if (dstOffset) {
+    date.setHours(date.getHours() + 1);
+  }
+  return date;
+};
+var pastCutoffTime = (dateNow, cutoffTime) => {
+  if (!cutoffTime) {
+    return false;
+  }
+  const [h, m, s] = cutoffTime.split(":").map(Number);
+  const cutoff = new Date(dateNow);
+  cutoff.setHours(h, m || 0, s || 0, 0);
+  return !!(dateNow > cutoff);
+};
+var handleAddDisallowedDaysToLeadTime = (dateNow, leadTime, disabledDates, disallowedDays) => {
+  let updatedLead = leadTime;
+  let testDate = new Date(dateNow);
+  for (let i = 1; i <= updatedLead; i++) {
+    testDate.setDate(dateNow.getDate() + i);
+    const y = testDate.getFullYear();
+    const m = String(testDate.getMonth() + 1).padStart(2, "0");
+    const d = String(testDate.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${m}-${d}`;
+    const dayOfWeek = testDate.getDay().toString();
+    if (disabledDates.includes(dateStr) || disallowedDays.includes(dayOfWeek)) {
+      updatedLead += 1;
+    }
+  }
+  return updatedLead;
+};
+var getUpdatedLeadTime = (dateNow, dateConfig) => {
+  const {
+    lead_time,
+    cutoff_time,
+    disabled_dates,
+    disallowed_days,
+    add_disallowed_to_lead
+  } = dateConfig;
+  let updatedLead = (typeof lead_time === "string" ? parseInt(lead_time) : lead_time) || 0;
+  if (pastCutoffTime(dateNow, cutoff_time)) {
+    updatedLead += 1;
+  }
+  if (add_disallowed_to_lead) {
+    updatedLead = handleAddDisallowedDaysToLeadTime(dateNow, updatedLead, disabled_dates, disallowed_days);
+  }
+  return updatedLead;
+};
+var getFirstAvailableDate = (dateNow, dateConfig) => {
+  const updatedLeadTime = getUpdatedLeadTime(dateNow, dateConfig);
+  const target = new Date(dateNow);
+  target.setDate(dateNow.getDate() + updatedLeadTime);
+  return target;
+};
+var getDaysUntilDateValue = (dateValue, dateConfig, calculateFrom) => {
+  const dateNow = dateConfig.now ? parseDateString(dateConfig.now) : getDateNow(dateConfig);
+  if (!dateNow) {
+    return null;
+  }
+  const parsedDateValue = parseDateString(dateValue);
+  const testDateValue = calculateFrom === "now" ? dateNow : getFirstAvailableDate(dateNow, dateConfig);
+  if (!parsedDateValue || !testDateValue) {
+    return null;
+  }
+  const diffTime = parsedDateValue.getTime() - testDateValue.getTime();
+  return Math.ceil(diffTime / (1e3 * 60 * 60 * 24));
+};
+
 // src/ConditionTests.ts
 var tests = {
   NOT_UNDEFINED: (value) => {
@@ -134,19 +251,65 @@ var tests = {
    */
   LESS_THAN: (value, testValue) => {
     return tests.IS_NUMBER(value) && tests.IS_NUMBER(testValue) && Number(value) < Number(testValue);
+  },
+  /**
+   * Converts the date value to a lead time in days to NOW,
+   * then checks if the lead time is greater than the test value.
+   */
+  GREATER_THAN_DATE_NOW: (value, testValue, config) => {
+    if (!tests.IS_STRING(value) || !tests.IS_NUMBER(testValue) || !(config == null ? void 0 : config.date)) {
+      return false;
+    }
+    const leadTime = getDaysUntilDateValue(value, config.date, "now");
+    return tests.GREATER_THAN(leadTime, testValue);
+  },
+  /**
+   * Converts the date value to a lead time in days to NOW,
+   * then checks if the lead time is less than the test value.
+   */
+  LESS_THAN_DATE_NOW: (value, testValue, config) => {
+    if (!tests.IS_STRING(value) || !tests.IS_NUMBER(testValue) || !(config == null ? void 0 : config.date)) {
+      return false;
+    }
+    const leadTime = getDaysUntilDateValue(value, config.date, "now");
+    return tests.LESS_THAN(leadTime, testValue);
+  },
+  /**
+   * Converts the date value to a lead time in days to the FIRST AVAILABLE date,
+   * then checks if the lead time is greater than the test value.
+   */
+  GREATER_THAN_DATE_FIRST: (value, testValue, config) => {
+    if (!tests.IS_STRING(value) || !tests.IS_NUMBER(testValue) || !(config == null ? void 0 : config.date)) {
+      return false;
+    }
+    const leadTime = getDaysUntilDateValue(value, config.date, "first_available");
+    return tests.GREATER_THAN(leadTime, testValue);
+  },
+  /**
+   * Converts the date value to a lead time in days to the FIRST AVAILABLE date,
+   * then checks if the lead time is less than the test value.
+   */
+  LESS_THAN_DATE_FIRST: (value, testValue, config) => {
+    if (!tests.IS_STRING(value) || !tests.IS_NUMBER(testValue) || !(config == null ? void 0 : config.date)) {
+      return false;
+    }
+    const leadTime = getDaysUntilDateValue(value, config.date, "first_available");
+    return tests.LESS_THAN(leadTime, testValue);
   }
 };
 var ConditionTests_default = tests;
 
 // src/JsonConditionChecker.ts
 var JsonConditionChecker = class {
-  constructor(conditions, allOrAny, json) {
+  constructor(conditions, allOrAny, json, config) {
     this.conditions = conditions;
     this.allOrAny = allOrAny;
     this.json = json;
+    this.config = config;
     this.conditions = conditions;
     this.allOrAny = allOrAny;
     this.json = json;
+    this.config = config || {};
   }
   /**
    * Validation config is set up in dot notation to match the form html structure
@@ -230,7 +393,7 @@ var JsonConditionChecker = class {
         conditionValue
       });
     }
-    return ConditionTests_default[condition](value, conditionValue);
+    return ConditionTests_default[condition](value, conditionValue, this.config);
   };
   /**
    * @inheritdoc

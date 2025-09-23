@@ -1,3 +1,21 @@
+/**
+ * 
+ * @copyright     (c) 2024-2025 Gist Applications Inc.
+ * @author        Greg Olive greg@gist-apps.com
+ * @package       @gistapps/conditions-validator
+ * 
+ * /src/ConditionTests.ts
+ * Created:       Wed Jun 05 2024
+ * Modified By:   Greg Olive
+ * Last Modified: Mon Sep 22 2025
+ */
+
+import {
+  getDaysUntilDateValue,
+} from './utils/index';
+import type {
+  AdditionalConfigInterface,
+} from './types/index';
 
 const tests = {
   
@@ -135,7 +153,84 @@ const tests = {
    */
   LESS_THAN: (value: any, testValue: any) => {
     return tests.IS_NUMBER(value) && tests.IS_NUMBER(testValue) && Number(value) < Number(testValue);
-  }
+  },
+
+  /**
+   * Converts the date value to a lead time in days to NOW,
+   * then checks if the lead time is greater than the test value.
+   */
+  GREATER_THAN_DATE_NOW: (
+    value: any,     // e.g. "2025-09-15" <- date in the future
+    testValue: any, // e.g. 3 (days)
+    config: AdditionalConfigInterface,
+  ) => {
+
+    if (!tests.IS_STRING(value) || !tests.IS_NUMBER(testValue) || !config?.date) {
+      return false;
+    }
+
+    const leadTime = getDaysUntilDateValue(value, config.date, 'now');
+    return tests.GREATER_THAN(leadTime, testValue);
+  
+  },
+
+  /**
+   * Converts the date value to a lead time in days to NOW,
+   * then checks if the lead time is less than the test value.
+   */
+  LESS_THAN_DATE_NOW: (
+    value: any,     // e.g. "2025-09-15" <- date in the future
+    testValue: any, // e.g. 3 (days)
+    config: AdditionalConfigInterface,
+  ) => {
+
+    if (!tests.IS_STRING(value) || !tests.IS_NUMBER(testValue) || !config?.date) {
+      return false;
+    }
+
+    const leadTime = getDaysUntilDateValue(value, config.date, 'now');
+    return tests.LESS_THAN(leadTime, testValue);
+
+  },
+
+  /**
+   * Converts the date value to a lead time in days to the FIRST AVAILABLE date,
+   * then checks if the lead time is greater than the test value.
+   */
+  GREATER_THAN_DATE_FIRST: (
+    value: any,     // e.g. "2025-09-15" <- date in the future
+    testValue: any, // e.g. 3 (days)
+    config: AdditionalConfigInterface,
+  ) => {
+
+    if (!tests.IS_STRING(value) || !tests.IS_NUMBER(testValue) || !config?.date) {
+      return false;
+    }
+
+    const leadTime = getDaysUntilDateValue(value, config.date, 'first_available');
+    return tests.GREATER_THAN(leadTime, testValue);
+  
+  },
+
+  /**
+   * Converts the date value to a lead time in days to the FIRST AVAILABLE date,
+   * then checks if the lead time is less than the test value.
+   */
+  LESS_THAN_DATE_FIRST: (
+    value: any,     // e.g. "2025-09-15" <- date in the future
+    testValue: any, // e.g. 3 (days)
+    config: AdditionalConfigInterface,
+  ) => {
+
+    if (!tests.IS_STRING(value) || !tests.IS_NUMBER(testValue) || !config?.date) {
+      return false;
+    }
+
+    const leadTime = getDaysUntilDateValue(value, config.date, 'first_available');
+    return tests.LESS_THAN(leadTime, testValue);
+
+  },
+
 };
 
 export default tests;

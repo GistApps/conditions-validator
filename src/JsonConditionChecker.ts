@@ -1,20 +1,36 @@
-
+/**
+ * 
+ * @copyright     (c) 2024-2025 Gist Applications Inc.
+ * @author        Greg Olive greg@gist-apps.com
+ * @package       @gistapps/conditions-validator
+ * 
+ * /src/JsonConditionChecker.ts
+ * Created:       Fri Nov 01 2024
+ * Modified By:   Greg Olive
+ * Last Modified: Fri Sep 12 2025
+ */
 
 import ConditionCheckerInterface from './ConditionCheckerInterface';
 import ConditionTests from './ConditionTests';
-import { AllOrAnyType, JSONConditionInterface } from './types/index';
+import type {
+  AdditionalConfigInterface,
+  AllOrAnyType,
+  JSONConditionInterface,
+} from './types/index';
 
 abstract class JsonConditionChecker implements ConditionCheckerInterface {
 
   constructor(
     public conditions: Array<JSONConditionInterface>,
     public allOrAny: AllOrAnyType,
-    public json: any
+    public json: any,
+    public config?: AdditionalConfigInterface,
   )
   {
     this.conditions = conditions;
     this.allOrAny   = allOrAny;
     this.json       = json;
+    this.config     = config || {};
   }
 
   /**
@@ -140,7 +156,7 @@ abstract class JsonConditionChecker implements ConditionCheckerInterface {
       });
     }
     
-    return ConditionTests[condition](value, conditionValue);
+    return ConditionTests[condition](value, conditionValue, this.config);
 
   }
 

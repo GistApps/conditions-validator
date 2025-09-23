@@ -1,3 +1,66 @@
+/**
+ *
+ * @copyright     (c) 2025 Gist Applications Inc.
+ * @author        Greg Olive greg@gist-apps.com
+ * @package       @gistapps/conditions-validator
+ *
+ * /src/types/additional-config.ts
+ * Created:       Fri Sep 12 2025
+ * Modified By:   Greg Olive
+ * Last Modified: Mon Sep 22 2025
+ */
+type AdditionalConfigInterface = {
+    date?: DateConfig;
+};
+type DateConfig = {
+    now?: string;
+    timezone: string | null;
+    lead_time: number | string;
+    cutoff_time: string | null;
+    cutoff_time_type: string;
+    disabled_dates: string[];
+    disallowed_days: string[];
+    add_disallowed_to_lead: boolean;
+};
+
+/**
+ *
+ * @copyright     (c) 2025 Gist Applications Inc.
+ * @author        Greg Olive greg@gist-apps.com
+ * @package       @gistapps/conditions-validator
+ *
+ * /src/types/index.ts
+ * Created:       Fri Mar 14 2025
+ * Modified By:   Greg Olive
+ * Last Modified: Fri Sep 12 2025
+ */
+
+type FormConditionInterface = {
+    element: string | HTMLElement | NodeList;
+    addElementValues?: any[];
+    condition: string;
+    value: any;
+};
+type JSONConditionInterface = {
+    option: string;
+    condition: string;
+    value: any;
+};
+type ConditionInterface = FormConditionInterface | JSONConditionInterface;
+type AllOrAnyType = 'all' | 'any';
+
+/**
+ *
+ * @copyright     (c) 2024-2025 Gist Applications Inc.
+ * @author        Greg Olive greg@gist-apps.com
+ * @package       @gistapps/conditions-validator
+ *
+ * /src/ConditionTests.ts
+ * Created:       Wed Jun 05 2024
+ * Modified By:   Greg Olive
+ * Last Modified: Mon Sep 22 2025
+ */
+
 declare const tests: {
     NOT_UNDEFINED: (value: any) => boolean;
     NOT_NULL: (value: any) => boolean;
@@ -47,21 +110,27 @@ declare const tests: {
      * Checks if the value is less than the test value
      */
     LESS_THAN: (value: any, testValue: any) => boolean;
+    /**
+     * Converts the date value to a lead time in days to NOW,
+     * then checks if the lead time is greater than the test value.
+     */
+    GREATER_THAN_DATE_NOW: (value: any, testValue: any, config: AdditionalConfigInterface) => boolean;
+    /**
+     * Converts the date value to a lead time in days to NOW,
+     * then checks if the lead time is less than the test value.
+     */
+    LESS_THAN_DATE_NOW: (value: any, testValue: any, config: AdditionalConfigInterface) => boolean;
+    /**
+     * Converts the date value to a lead time in days to the FIRST AVAILABLE date,
+     * then checks if the lead time is greater than the test value.
+     */
+    GREATER_THAN_DATE_FIRST: (value: any, testValue: any, config: AdditionalConfigInterface) => boolean;
+    /**
+     * Converts the date value to a lead time in days to the FIRST AVAILABLE date,
+     * then checks if the lead time is less than the test value.
+     */
+    LESS_THAN_DATE_FIRST: (value: any, testValue: any, config: AdditionalConfigInterface) => boolean;
 };
-
-type FormConditionInterface = {
-    element: string | HTMLElement | NodeList;
-    addElementValues?: any[];
-    condition: string;
-    value: any;
-};
-type JSONConditionInterface = {
-    option: string;
-    condition: string;
-    value: any;
-};
-type ConditionInterface = FormConditionInterface | JSONConditionInterface;
-type AllOrAnyType = 'all' | 'any';
 
 interface ConditionCheckerInterface {
     conditions: Array<ConditionInterface>;
@@ -85,11 +154,24 @@ interface ConditionCheckerInterface {
     compare(value: any, condition: string, conditionValue: any): boolean;
 }
 
+/**
+ *
+ * @copyright     (c) 2024-2025 Gist Applications Inc.
+ * @author        Greg Olive greg@gist-apps.com
+ * @package       @gistapps/conditions-validator
+ *
+ * /src/JsonConditionChecker.ts
+ * Created:       Fri Nov 01 2024
+ * Modified By:   Greg Olive
+ * Last Modified: Fri Sep 12 2025
+ */
+
 declare abstract class JsonConditionChecker implements ConditionCheckerInterface {
     conditions: Array<JSONConditionInterface>;
     allOrAny: AllOrAnyType;
     json: any;
-    constructor(conditions: Array<JSONConditionInterface>, allOrAny: AllOrAnyType, json: any);
+    config?: AdditionalConfigInterface;
+    constructor(conditions: Array<JSONConditionInterface>, allOrAny: AllOrAnyType, json: any, config?: AdditionalConfigInterface);
     /**
      * Validation config is set up in dot notation to match the form html structure
      * @param {*} obj

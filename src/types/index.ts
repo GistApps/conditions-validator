@@ -1,3 +1,16 @@
+/**
+ * 
+ * @copyright     (c) 2025 Gist Applications Inc.
+ * @author        Greg Olive greg@gist-apps.com
+ * @package       @gistapps/conditions-validator
+ * 
+ * /src/types/index.ts
+ * Created:       Fri Mar 14 2025
+ * Modified By:   Greg Olive
+ * Last Modified: Fri Sep 12 2025
+ */
+
+export * from './additional-config';
 
 export type FormConditionInterface = {
   element: string|HTMLElement|NodeList; // HTML input, select or textarea name attribute || or the element itself
@@ -14,4 +27,4 @@ export type JSONConditionInterface = {
 
 export type ConditionInterface = FormConditionInterface|JSONConditionInterface;
 
-export type AllOrAnyType = 'all'|'any';
+export type AllOrAnyType = 'all' | 'any';
