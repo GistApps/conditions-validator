@@ -31,8 +31,6 @@ jobs:
           VERSION=${{ github.event.release.tag_name }}
           VERSION=${VERSION#v} # strip the "v" prefix, e.g. v2.1.0-alpha.1 → 2.1.0-alpha.1
 
-          npm version $VERSION --no-git-tag-version
-
           if [[ $VERSION == *"-alpha."* ]]; then
             npm publish --tag alpha
           elif [[ $VERSION == *"-beta."* ]]; then
