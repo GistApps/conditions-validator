@@ -7,7 +7,7 @@
  * /src/ConditionTests.ts
  * Created:       Wed Jun 05 2024
  * Modified By:   Greg Olive
- * Last Modified: Mon Sep 22 2025
+ * Last Modified: Mon Jan 12 2026
  */
 
 import {
@@ -22,27 +22,49 @@ const tests = {
   NOT_UNDEFINED: (value: any) => {
     return typeof value !== "undefined";
   },
+
   NOT_NULL: (value: any) => {
     return value !== null;
   },
+
   NOT_EMPTY: (value: any) => {
-    return tests.NOT_NULL(value) && value !== "" && 
-    (tests.IS_ARRAY(value) ? value.length > 0 : true) && 
-    (tests.IS_OBJECT(value) ? !tests.IS_EMPTY_OBJECT(value) : true)
-    ;
+    return (
+      tests.NOT_NULL(value) && value !== "" && 
+      (tests.IS_ARRAY(value) ? value.length > 0 : true) && 
+      (tests.IS_OBJECT(value) ? !tests.IS_EMPTY_OBJECT(value) : true)
+    );
   },
+
   NOT_FALSE: (value: any) => {
     return value !== false;
   },
+
   IS_STRING: (value: any) => {
     return typeof value === "string";
   },
+
   IS_NUMBER: (value: any) => {
     return !isNaN(value);
   },
+
   IS_ARRAY: (value: any) => {
     return Array.isArray(value);
   },
+
+  IS_EMAIL: (value: any) => {
+    return (
+      
+      value?.indexOf('@') !== -1 &&
+      value?.indexOf('.') !== -1 &&
+      value?.indexOf(',') === -1
+    );
+  },
+
+  IS_PHONE: (value: any) => {
+    const phoneRegex = /^[\s()+-]*([0-9][\s()+-]*){6,20}$/;
+    return tests.IS_STRING(value) && phoneRegex.test(value);
+  },
+
   /**
    * Thanks to https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript/8511350#8511350
    */
@@ -74,6 +96,7 @@ const tests = {
     }
   
     return true;
+
   },
   
   IS_FUNCTION: (value: any) => {

@@ -58,7 +58,7 @@ type AllOrAnyType = 'all' | 'any';
  * /src/ConditionTests.ts
  * Created:       Wed Jun 05 2024
  * Modified By:   Greg Olive
- * Last Modified: Mon Sep 22 2025
+ * Last Modified: Mon Jan 12 2026
  */
 
 declare const tests: {
@@ -69,6 +69,8 @@ declare const tests: {
     IS_STRING: (value: any) => boolean;
     IS_NUMBER: (value: any) => boolean;
     IS_ARRAY: (value: any) => boolean;
+    IS_EMAIL: (value: any) => boolean;
+    IS_PHONE: (value: any) => boolean;
     /**
      * Thanks to https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript/8511350#8511350
      */

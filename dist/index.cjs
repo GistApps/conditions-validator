@@ -165,6 +165,13 @@ var tests = {
   IS_ARRAY: (value) => {
     return Array.isArray(value);
   },
+  IS_EMAIL: (value) => {
+    return (value == null ? void 0 : value.indexOf("@")) !== -1 && (value == null ? void 0 : value.indexOf(".")) !== -1 && (value == null ? void 0 : value.indexOf(",")) === -1;
+  },
+  IS_PHONE: (value) => {
+    const phoneRegex = /^[\s()+-]*([0-9][\s()+-]*){6,20}$/;
+    return tests.IS_STRING(value) && phoneRegex.test(value);
+  },
   /**
    * Thanks to https://stackoverflow.com/questions/8511281/check-if-a-value-is-an-object-in-javascript/8511350#8511350
    */
